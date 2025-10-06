@@ -168,14 +168,9 @@ export class NovaSonicBidirectionalStreamClient {
       ...config.requestHandlerConfig,
     });
 
-    if (!config.clientConfig.credentials) {
-      throw new Error("No credentials provided");
-    }
-
     this.bedrockRuntimeClient = new BedrockRuntimeClient({
+      region: "us-east-1",
       ...config.clientConfig,
-      credentials: config.clientConfig.credentials,
-      region: config.clientConfig.region || "us-east-1",
       requestHandler: http2Client
     });
 
@@ -258,7 +253,7 @@ export class NovaSonicBidirectionalStreamClient {
     const kbClient = new BedrockKnowledgeBaseClient();
 
     // Replace with your actual Knowledge Base ID
-    const KNOWLEDGE_BASE_ID = 'TZN7QB6GFH';
+    const KNOWLEDGE_BASE_ID = 'KGTNCOBA0B';
 
     try {
       console.log(`Searching for: "${query}"`);
@@ -559,7 +554,11 @@ export class NovaSonicBidirectionalStreamClient {
         timestamp: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+        console.log(`Stream closed for session ${sessionId} (expected during cleanup)`);
+        return;
+      }
       console.error(`Error processing response stream for session ${sessionId}: `, error);
       this.dispatchEvent(sessionId, 'error', {
         source: 'responseStream',
@@ -618,7 +617,7 @@ export class NovaSonicBidirectionalStreamClient {
             tools: [{
               toolSpec: {
                 name: "retrieve_benefit_policy",
-                description: "Retrieves aglia company benefit policy. It includes medical, vision, financial etc.. Anything related with employee policy.",
+                description: "Retrieves information from the knowledge base to answer user questions.",
                 inputSchema: {
                   json: KnowledgeBaseToolSchema
                 }
