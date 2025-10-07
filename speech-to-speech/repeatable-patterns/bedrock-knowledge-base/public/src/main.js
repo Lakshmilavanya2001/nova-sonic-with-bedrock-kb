@@ -9,6 +9,8 @@ const startButton = document.getElementById('start');
 const stopButton = document.getElementById('stop');
 const statusElement = document.getElementById('status');
 const chatContainer = document.getElementById('chat-container');
+const textInput = document.getElementById('text-input');
+const sendTextButton = document.getElementById('send-text');
 
 // Chat history management
 let chat = { history: [] };
@@ -38,6 +40,7 @@ let role;
 const audioPlayer = new AudioPlayer();
 let sessionInitialized = false;
 let manualDisconnect = false;
+let isProcessingText = false;
 
 let samplingRatio = 1;
 const TARGET_SAMPLE_RATE = 16000; 
@@ -577,9 +580,74 @@ socket.on('error', (error) => {
     hideAssistantThinkingIndicator();
 });
 
+// Text input functionality
+async function sendTextMessage() {
+    const message = textInput.value.trim();
+    if (!message || isProcessingText) return;
+
+    isProcessingText = true;
+    sendTextButton.disabled = true;
+    textInput.disabled = true;
+
+    try {
+        // Add user message to chat immediately
+        chatHistoryManager.addTextMessage({
+            role: 'USER',
+            message: message
+        });
+
+        // Clear input
+        textInput.value = '';
+
+        // Show assistant thinking indicator
+        showAssistantThinkingIndicator();
+
+        // Send to server
+        socket.emit('textInput', message);
+
+    } catch (error) {
+        console.error('Error sending text message:', error);
+        statusElement.textContent = 'Error sending message';
+        statusElement.className = 'error';
+    }
+}
+
+// Handle text response from server
+socket.on('textResponse', (data) => {
+    console.log('Received text response:', data);
+    
+    hideAssistantThinkingIndicator();
+    
+    if (data.content) {
+        chatHistoryManager.addTextMessage({
+            role: 'ASSISTANT',
+            message: data.content
+        });
+    }
+    
+    // Re-enable text input
+    isProcessingText = false;
+    sendTextButton.disabled = false;
+    textInput.disabled = false;
+    textInput.focus();
+});
+
 // Button event listeners
 startButton.addEventListener('click', startStreaming);
 stopButton.addEventListener('click', stopStreaming);
+sendTextButton.addEventListener('click', sendTextMessage);
+
+// Text input enter key handler
+textInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendTextMessage();
+    }
+});
 
 // Initialize the app when the page loads
-document.addEventListener('DOMContentLoaded', initAudio);
+document.addEventListener('DOMContentLoaded', () => {
+    initAudio();
+    // Focus on text input initially
+    textInput.focus();
+});

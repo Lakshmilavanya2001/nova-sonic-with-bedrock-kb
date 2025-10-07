@@ -4,17 +4,28 @@ import path from 'path';
 import { Server } from 'socket.io';
 import { fromIni } from "@aws-sdk/credential-providers";
 import { NovaSonicBidirectionalStreamClient, StreamSession } from './client';
+import { UnifiedClient } from './unified-client';
 import { Buffer } from 'node:buffer';
 
 // Configure AWS credentials
 const AWS_PROFILE_NAME = process.env.AWS_PROFILE || 'bedrock-test';
+const KNOWLEDGE_BASE_ID = process.env.KNOWLEDGE_BASE_ID || 'BEF0F18AP3';
 
 // Create Express app and HTTP server
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Create the AWS Bedrock client
+// Create the unified client that handles both text and audio
+const unifiedClient = new UnifiedClient({
+    clientConfig: {
+        region: process.env.AWS_REGION || "us-east-1",
+        credentials: fromIni({ profile: AWS_PROFILE_NAME })
+    },
+    knowledgeBaseId: KNOWLEDGE_BASE_ID
+});
+
+// Create the AWS Bedrock client for backward compatibility
 const bedrockClient = new NovaSonicBidirectionalStreamClient({
     requestHandlerConfig: {
         maxConcurrentStreams: 10,
@@ -223,6 +234,29 @@ io.on('connection', (socket) => {
             console.error('Error starting new chat:', error);
             socket.emit('error', {
                 message: 'Failed to start new chat',
+                details: error instanceof Error ? error.message : String(error)
+            });
+        }
+    });
+
+    // Text input handler using Claude Sonnet
+    socket.on('textInput', async (textData) => {
+        try {
+            console.log(`Text input received for ${socket.id}: ${textData}`);
+            
+            // Process text input using Claude Sonnet
+            const result = await unifiedClient.processTextInput(textData);
+            
+            // Send response back to client
+            socket.emit('textResponse', {
+                content: result.response?.content,
+                usage: result.response?.usage
+            });
+            
+        } catch (error) {
+            console.error('Error processing text input:', error);
+            socket.emit('error', {
+                message: 'Error processing text input',
                 details: error instanceof Error ? error.message : String(error)
             });
         }

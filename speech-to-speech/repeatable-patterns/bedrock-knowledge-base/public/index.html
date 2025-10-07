@@ -12,9 +12,16 @@
     <div id="app">
         <div id="status" class="disconnected">Disconnected</div>
         <div id="chat-container"></div>
-        <div id="controls">
-            <button id="start" class="button">Start Streaming</button>
-            <button id="stop" class="button" disabled>Stop Streaming</button>
+        <div id="input-section">
+            <div id="text-input-container">
+                <input type="text" id="text-input" placeholder="Type your question here..." />
+                <button id="send-text" class="button">Send</button>
+            </div>
+            <div class="input-divider">OR</div>
+            <div id="audio-controls">
+                <button id="start" class="button">Start Voice Chat</button>
+                <button id="stop" class="button" disabled>Stop Voice Chat</button>
+            </div>
         </div>
     </div>
     <script type="module" src="/src/main.js"></script>

@@ -313,7 +313,55 @@ button:disabled,
   opacity: 0.7;
 }
 
-/* Controls styling */
+/* Input section styling */
+#input-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  z-index: 100;
+}
+
+#text-input-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+#text-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+#text-input:focus {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 0 2px rgba(100, 108, 255, 0.2);
+}
+
+.input-divider {
+  text-align: center;
+  margin: 10px 0;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#audio-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Controls styling - kept for backward compatibility */
 #controls {
   position: fixed;
   bottom: 0;
@@ -358,6 +406,24 @@ button:disabled,
     background-color: #242424;
   }
 
+  #input-section {
+    background-color: #242424;
+  }
+
+  #text-input {
+    background-color: #333;
+    color: #fff;
+    border-color: #555;
+  }
+
+  #text-input:focus {
+    border-color: #646cff;
+  }
+
+  .input-divider {
+    color: #b2bec3;
+  }
+
   .role-label {
     color: #b2bec3;
   }
@@ -397,6 +463,10 @@ button:disabled,
   }
 
   #controls {
+    background-color: white;
+  }
+
+  #input-section {
     background-color: white;
   }
 }

@@ -1,14 +1,17 @@
-# Amazon Nova Sonic TypeScript Example: Bedrock Knowledge Base Integration
+# Amazon Nova Sonic TypeScript Example: Dual Input with Bedrock Knowledge Base Integration
 
-This project demonstrates how to build an intelligent conversational application by integrating Amazon Nova Sonic model with Amazon Bedrock Knowledge Base. The application enables natural speech-to-speech interactions while leveraging a knowledge base to provide accurate, contextual responses about company benefit policies.
+This project demonstrates how to build an intelligent conversational application that supports both text and audio inputs, automatically routing to the appropriate AI model while leveraging Amazon Bedrock Knowledge Base for accurate, contextual responses.
 
 ## Key Features
 
-- **Knowledge Base Integration**: Retrieves accurate information from company benefit policies stored in Amazon Bedrock Knowledge Base
+- **Dual Input Support**: 
+  - **Text Input**: Uses Claude Sonnet 3.5 for text-based queries
+  - **Audio Input**: Uses Nova Sonic for voice conversations
+- **Unified Knowledge Base**: Both models access the same Bedrock Knowledge Base for consistent responses
 - **Real-time Speech-to-Speech**: Bidirectional WebSocket-based audio streaming with Amazon Nova Sonic model
 - **Natural Conversational Experience**: Seamless interaction through a responsive web interface
 - **Contextual Responses**: AI-generated answers informed by knowledge base content
-- **Multi-platform Support**: Web interface and command-line options for interactions
+- **Flexible Interaction**: Choose between typing or speaking based on your preference
 
 ## Knowledge Base Integration
 
@@ -19,15 +22,22 @@ This implementation showcases how to enhance AI responses with domain-specific k
 3. **Intelligent Retrieval**: Model determines when to use the knowledge base based on user questions
 4. **Contextual Response Generation**: Retrieved information is incorporated into natural-sounding responses
 
-### Knowledge Base Workflow
+### Dual Input Workflow
 
+**Text Input Flow:**
+```
+User Text → Claude Sonnet → Knowledge Base Query → Vector DB → 
+                                                                ↓
+User ← Text Response ← Claude Sonnet ← Retrieved Context
+```
+
+**Audio Input Flow:**
 ```
 User Speech → Amazon Nova Sonic → Tool Use Detection → Bedrock KB Query → 
                                                                              ↓
                                                                         Vector DB
                                                                              ↓
 User ← Audio Output ← Amazon Nova Sonic ← Tool Results ← Retrieved Context
-
 ```
 
 ## Repository Structure
@@ -37,9 +47,11 @@ User ← Audio Output ← Amazon Nova Sonic ← Tool Results ← Retrieved Conte
 │   ├── index.html          # Main application entry point
 │   └── src/                # Frontend source code
 ├── src/                    # TypeScript source files
-│   ├── client.ts           # AWS Bedrock client implementation
+│   ├── client.ts           # Nova Sonic bidirectional streaming client
+│   ├── claude-client.ts    # Claude Sonnet client for text input
+│   ├── unified-client.ts   # Unified client handling both text and audio
 │   ├── bedrock-kb-client.ts # AWS Bedrock Knowledge Base client implementation
-│   ├── server.ts           # Express server implementation
+│   ├── server.ts           # Express server with dual input support
 │   ├── consts.ts           # Constants including tool schemas and configurations
 │   └── types.ts            # TypeScript type definitions
 ├── kb/                     # Knowledge Base source files
@@ -148,11 +160,19 @@ http://localhost:3000
 
 3. Grant microphone permissions when prompted.
 
-4. Start asking questions about company benefits to see the Knowledge Base in action:
-  - "What medical benefits does Aglaia offer?"
-  - "Tell me about the vision coverage in the Aglaia policy"
-  - "What are the retirement benefits at Aglaia?"
-  - "How does the dental plan work?"
+4. Start interacting with the system using either text or voice:
+
+**Text Input Examples:**
+  - Type: "What medical benefits does Aglaia offer?"
+  - Type: "Tell me about the vision coverage in the Aglaia policy"
+  - Type: "What are the retirement benefits at Aglaia?"
+  - Type: "How does the dental plan work?"
+
+**Voice Input Examples:**
+  - Click "Start Voice Chat" and speak: "What medical benefits does Aglaia offer?"
+  - Ask: "Tell me about the vision coverage in the Aglaia policy"
+  - Say: "What are the retirement benefits at Aglaia?"
+  - Inquire: "How does the dental plan work?"
 
 ## Testing Knowledge Base Retrieval
 
@@ -199,16 +219,26 @@ To enhance the knowledge base with additional documents:
 2. Upload these documents to your knowledge base in the AWS Bedrock console
 3. No code changes are needed as long as you're using the same knowledge base ID
 
-## Data Flow with Knowledge Base
+## Data Flow with Dual Input Support
 
+**Text Input Flow:**
 ```ascii
-User Question → Browser → Server → Client → Knowledge Base Decision
-     ↑                                              ↓
-     │                                     Knowledge Base Query
-     │                                              ↓
-     │                                     Amazon Nova Sonic Model
-     │                                              ↓
-Audio Response ← Browser ← Server ← Client ← Response Generation
+Text Input → Browser → Server → Claude Client → Knowledge Base Query
+     ↑                                                    ↓
+     │                                           Response Generation
+     │                                                    ↓
+Text Response ← Browser ← Server ← Claude Client ← Formatted Response
+```
+
+**Audio Input Flow:**
+```ascii
+Audio Input → Browser → Server → Nova Sonic Client → Knowledge Base Decision
+     ↑                                                        ↓
+     │                                               Knowledge Base Query
+     │                                                        ↓
+     │                                               Nova Sonic Model
+     │                                                        ↓
+Audio Response ← Browser ← Server ← Nova Sonic Client ← Response Generation
 ```
 
 ## Infrastructure
